@@ -256,14 +256,6 @@
         .order-form button:hover {
             background-color: #388e3c;
         }
-        /* Стил за съобщението след успешно изпращане на поръчката */
-        #order-success-message h2 {
-            color: #4caf50;
-            margin-bottom: 0.5rem;
-        }
-        #order-success-message p {
-            font-size: 1.1rem;
-        }
         /* Показване на херо изображението като отделен елемент. Изображението
            се зарежда директно в HTML като <img>, а не като фон, за да се
            показва отдясно до заглавието с добра резолюция. */
@@ -417,7 +409,8 @@
         <!-- Форма за поръчка (скрита по подразбиране). След натискане на бутона поръчай се показва. -->
         <section id="order-form" class="order-form" style="display: none;">
             <h2>Попълнете данните си за поръчка</h2>
-            <form>
+            <!-- Добавихме action и method, за да изпращаме данните към Getform -->
+            <form action="https://getform.io/f/bzynmvra" method="POST">
                 <label for="customer-name">Име и фамилия</label>
                 <input type="text" id="customer-name" name="customer-name" placeholder="Вашите имена" required>
 
@@ -433,8 +426,7 @@
                 <button type="submit" class="btn">Изпрати поръчката</button>
             </form>
         </section>
-
-        <!-- Съобщение за успешно подадена поръчка. По подразбиране е скрито и ще се показва след успешното изпращане на формата. -->
+        <!-- Съобщение за успешно направена поръчка. Скрито по подразбиране; показва се след успешното изпращане. -->
         <section id="order-success-message" style="display: none; text-align: center; margin-top: 2rem;">
             <h2>Благодарим ви за поръчката!</h2>
             <p>Очаквайте да се свържем с вас.</p>
@@ -443,9 +435,7 @@
 
     <footer>
         <div class="container">
-            <!-- Съобщение за авторско право -->
             <p>&copy; 2025 – Forest Landscape Diffuser. Всички права запазени.</p>
-            <!-- Правни страници и контакт. Списъкът е разделен с вертикална черта за по‑добро визуално разделяне. -->
             <p style="margin-top: 0.5rem; font-size: 0.85rem;">
                 <a href="terms.html">Общи условия</a> |
                 <a href="privacy.html">Политика за поверителност</a> |
@@ -461,12 +451,6 @@
         // Вземаме всички бутони за поръчка (горе и в CTA), които имат клас order-btn
         const orderButtons = document.querySelectorAll('.order-btn');
         const orderForm = document.getElementById('order-form');
-        const orderSuccessMessage = document.getElementById('order-success-message');
-        // Вземаме вътрешната форма на секцията за поръчка
-        let orderFormElement = null;
-        if (orderForm) {
-            orderFormElement = orderForm.querySelector('form');
-        }
         orderButtons.forEach(function (button) {
             button.addEventListener('click', function (e) {
                 // Прекъсваме стандартното поведение, за да не прескочи към #anchor без да покаже формата
@@ -479,20 +463,6 @@
                 orderForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
             });
         });
-
-        // Обработка на изпращането на формата за поръчка
-        if (orderFormElement) {
-            orderFormElement.addEventListener('submit', function (ev) {
-                ev.preventDefault();
-                // Скриваме формата за поръчка
-                orderForm.style.display = 'none';
-                // Показваме съобщението за успех
-                if (orderSuccessMessage) {
-                    orderSuccessMessage.style.display = 'block';
-                    orderSuccessMessage.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-            });
-        }
 
         // Обработка на формата за отзиви
         const reviewForm = document.getElementById('review-form');
@@ -526,6 +496,37 @@
                 userReviews.appendChild(container);
                 // Ресетиране на формата
                 reviewForm.reset();
+            });
+        }
+
+        // Обработка на изпращането на формата за поръчка с показване на съобщение за успех
+        const orderSuccessMessage = document.getElementById('order-success-message');
+        let orderFormElement = null;
+        if (orderForm) {
+            orderFormElement = orderForm.querySelector('form');
+        }
+        if (orderFormElement) {
+            orderFormElement.addEventListener('submit', function (ev) {
+                // Спираме стандартното поведение, за да подадем данните чрез fetch
+                ev.preventDefault();
+                const formData = new FormData(orderFormElement);
+                fetch(orderFormElement.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                }).then(function () {
+                    // Скриваме формата за поръчка
+                    orderForm.style.display = 'none';
+                    // Показваме съобщението за успех
+                    if (orderSuccessMessage) {
+                        orderSuccessMessage.style.display = 'block';
+                        orderSuccessMessage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }).catch(function () {
+                    alert('Възникна грешка при изпращането на поръчката. Моля, опитайте отново.');
+                });
             });
         }
     });
